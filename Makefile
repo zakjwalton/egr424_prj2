@@ -17,7 +17,7 @@ SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst $(SRCDIR)%.c,$(BLDDIR)%.o, $(SRCS))
 SYMS = $(patsubst $(SRCDIR)%.c,$(SYMDIR)%.s, $(SRCS))
 
-all: $(BINDIR)/$(PROGRAM)
+all: $(BINDIR)/$(PROGRAM) $(BINDIR)/hello.bin
 
 debug: CCFLAGS += -DDEBUG -g
 debug: $(BINDIR)/$(PROGRAM)
@@ -37,6 +37,9 @@ $(BLDDIR)/%.o: $(SRCDIR)/%.c
 $(BINDIR)/$(PROGRAM): $(OBJS)
 	@mkdir -p $(dir $@)
 	$(CC) -o $@ $^ $(LIBS) $(LDFLAGS)
+
+%.bin: %.elf
+	arm-none-eabi-objcopy -O binary $^ $@
 
 $(SYMDIR)/%.s: $(SRCDIR)/%.c
 	@mkdir -p $(dir $@)
