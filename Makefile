@@ -27,6 +27,9 @@ symbols: $(SYMS)
 dump: $(BINDIR)/$(PROGRAM)
 	openocd -f program.cfg
 
+test:
+	sudo minicom /dev/ttyUSB0
+
 $(BLDDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) -c -o $@ $^ $(INCLUDE) $(CCFLAGS)
