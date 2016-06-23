@@ -13,7 +13,7 @@ typedef volatile struct uart_dev {
     tRingBufObject rx_buf;
 } uart_dev_t;
 
-void uart_dev_init(uart_dev_t *dev, unsigned long base_addr);
-void uart_dev_send(uart_dev_t *dev, const char *pucBuffer, unsigned long ulCount);
+uart_dev_t *uart_dev_init(int id, int baud_rate);
+void uart_dev_send(uart_dev_t *dev, unsigned char *pucBuffer, unsigned long ulCount);
 
 #endif // UART_DEV_H_
