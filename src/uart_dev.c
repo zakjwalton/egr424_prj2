@@ -92,8 +92,7 @@ uart_dev_t *uart_dev_init(int id, int baud_rate) {
     UARTFIFOLevelSet(dev->base_addr, UART_FIFO_TX1_8, UART_FIFO_RX4_8);
 
     // Enable UART interrupts on TX, RX, and recieve buffer timeout
-    // UARTIntEnable(dev->base_addr, UART_INT_RX | UART_INT_RT | UART_INT_TX);
-    UARTIntEnable(dev->base_addr, UART_INT_RX | UART_INT_TX);
+    UARTIntEnable(dev->base_addr, UART_INT_RX | UART_INT_RT | UART_INT_TX);
 
     // Return an address to the UART device structure
     return dev;
@@ -101,7 +100,8 @@ uart_dev_t *uart_dev_init(int id, int baud_rate) {
 
 
 void uart_dev_send(uart_dev_t *dev, unsigned char *pucBuffer, unsigned long ulCount) {
-    unsigned char c[6];
+    unsigned char c;
+    unsigned long bytes_to_send;
 
     // Loop while there are more characters to send.
     while(!RingBufFull((tRingBufObject *) &(dev->tx_buf)) && ulCount--) {
@@ -112,10 +112,14 @@ void uart_dev_send(uart_dev_t *dev, unsigned char *pucBuffer, unsigned long ulCo
 
     if (!UARTBusy(dev->base_addr)) {
         // kick off the first write
-        RingBufRead((tRingBufObject *) &dev->tx_buf, &c, 3);
-        UARTCharPutNonBlocking(dev->base_addr, c[0]);
-        UARTCharPutNonBlocking(dev->base_addr, c[1]);
-        UARTCharPutNonBlocking(dev->base_addr, c[2]);
-        // UARTCharPutNonBlocking(dev->base_addr, c[3]);
+        bytes_to_send = RingBufUsed((tRingBufObject *) &dev->tx_buf);
+        if(bytes_to_send > 4){
+            bytes_to_send = 4;
+        }
+        while(bytes_to_send--)
+        {
+            RingBufRead((tRingBufObject *) &dev->tx_buf, &c, 1);
+            UARTCharPutNonBlocking(dev->base_addr, c);
+        }
     }
 }
