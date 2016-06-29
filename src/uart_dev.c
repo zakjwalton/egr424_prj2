@@ -99,15 +99,17 @@ uart_dev_t *uart_dev_init(int id, int baud_rate) {
 }
 
 
-void uart_dev_send(uart_dev_t *dev, unsigned char *pucBuffer, unsigned long ulCount) {
+int uart_dev_write(uart_dev_t *dev, char *pucBuffer, unsigned long ulCount) {
     unsigned char c;
     unsigned long bytes_to_send;
+    unsigned long bytes_written = 0;
 
     // Loop while there are more characters to send.
     while(!RingBufFull((tRingBufObject *) &(dev->tx_buf)) && ulCount--) {
         // Write the next character to the UART.
         // UARTCharPutNonBlocking(dev->base_addr, *pucBuffer++);
-        RingBufWrite((tRingBufObject *) &dev->tx_buf, pucBuffer++, 1);
+        bytes_written++;
+        RingBufWrite((tRingBufObject *) &dev->tx_buf, (unsigned char *)pucBuffer++, 1);
     }
 
     if (!UARTBusy(dev->base_addr)) {
@@ -122,4 +124,18 @@ void uart_dev_send(uart_dev_t *dev, unsigned char *pucBuffer, unsigned long ulCo
             UARTCharPutNonBlocking(dev->base_addr, c);
         }
     }
+    return bytes_written;
+}
+
+int uart_dev_read(uart_dev_t *dev, char *pucBuffer, unsigned long numChars) {
+    unsigned long bytes_to_read;
+
+    //Read how ever many bytes were requested or number in ring buffer, whatever is smaller
+    bytes_to_read = RingBufUsed((tRingBufObject *) &dev->rx_buf);
+    if(bytes_to_read > numChars) {
+        bytes_to_read = numChars;
+    }
+
+    RingBufRead((tRingBufObject *) &dev->rx_buf, (unsigned char *)pucBuffer, bytes_to_read);
+    return bytes_to_read;
 }

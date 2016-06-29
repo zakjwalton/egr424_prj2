@@ -14,6 +14,7 @@ typedef volatile struct uart_dev {
 } uart_dev_t;
 
 uart_dev_t *uart_dev_init(int id, int baud_rate);
-void uart_dev_send(uart_dev_t *dev, unsigned char *pucBuffer, unsigned long ulCount);
+int uart_dev_write(uart_dev_t *dev, char *pucBuffer, unsigned long ulCount);
+int uart_dev_read(uart_dev_t *dev, char *pucBuffer, unsigned long numChars);
 
 #endif // UART_DEV_H_
