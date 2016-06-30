@@ -160,7 +160,14 @@ int main(void) {
         if(num_read) {
             uart_dev_write(UART2_d, buf, num_read);
             if(logging) {
-                uart_dev_write(UART0_d, buf, num_read);
+                uart_dev_write(UART0_d, "1 -> 2: ", 8);
+                write_time(seconds, UART0_d);
+                temp = 0;
+                while(temp < num_read) {
+                    write_hex(buf[temp], UART0_d);
+                    temp++;
+                }
+                uart_dev_write(UART0_d, "\r\n", 2);
             }
         }
     }
