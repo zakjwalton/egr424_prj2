@@ -18,6 +18,13 @@ __error__(char *pcFilename, unsigned long ulLine) {
 }
 #endif
 
+volatile unsigned int seconds;
+
+void timer_handler(void) {
+    TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    seconds += 1;
+}
+
 void write_hex(char c, uart_dev_t* dev);
 void write_time(unsigned int seconds, uart_dev_t* dev);
 
@@ -26,7 +33,6 @@ int main(void) {
     unsigned int logging = 0;
     unsigned int num_read;
     unsigned int idx;
-    unsigned int seconds;
     int temp;
     char buf[BUF_SIZE];
     uart_dev_t *UART0_d;
@@ -55,19 +61,13 @@ int main(void) {
     // peripherals for UART2
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UART2);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
+    //Peripherals for TIMER1
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
 
     // Initialize uarts
     UART0_d = uart_dev_init(0, 115200);
     UART1_d = uart_dev_init(1, 115200);
     UART2_d = uart_dev_init(2, 115200);
-
-    // Initialize timer
-    TimerConfigure();
-    TimerEnable();
-
-
-    // Enable processor interrupts.
-    IntMasterEnable();
 
     //Prompt User To enter time
     uart_dev_write(UART0_d, "Enter hours: \r\n", 15);
@@ -120,6 +120,16 @@ int main(void) {
         temp *= 10;
     }
     uart_dev_write(UART0_d, "\r\n", 2);
+
+    // Initialize timer
+    TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
+    TimerLoadSet(TIMER1_BASE, TIMER_A, 8000000);
+    TimerIntRegister(TIMER1_BASE, TIMER_BOTH, timer_handler);
+    TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    TimerEnable(TIMER1_BASE, TIMER_A);
+
+    // Enable processor interrupts.
+    IntMasterEnable();
 
     // Don't fall off the world!
     while(1) {
